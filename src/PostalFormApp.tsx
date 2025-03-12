@@ -1,5 +1,35 @@
-import React, { useState, useRef } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
+
+interface NotificationData {
+  enabled: boolean;
+  contact: string;
+}
+
+interface AddressData {
+  name: string;
+  addressLine1: string;
+  addressLine2: string;
+  postalCode: string;
+  city: string;
+}
+
+interface RecipientData extends AddressData {
+  country: string;
+}
+
+interface FormData {
+  trackingNumber: string;
+  sender: AddressData;
+  recipient: RecipientData;
+  senderNotification: NotificationData;
+  recipientNotification: NotificationData;
+  options: {
+    deliveryConfirmation: boolean;
+    priority: boolean;
+    size: 'S' | 'M' | 'L';
+  };
+}
 
 const formStyles = `
   /* Form styles for both print and screen */
@@ -202,8 +232,7 @@ const formStyles = `
 `;
 
 const PostalFormApp = () => {
-  const printRef = useRef();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     trackingNumber: '',
     sender: {
       name: '',
@@ -236,42 +265,25 @@ const PostalFormApp = () => {
 
   });
 
-  const handleChange = (section, field, value) => {
-    if (section) {
-      setFormData({
-        ...formData,
-        [section]: {
-          ...formData[section],
-          [field]: value
-        }
-      });
-    } else {
-      setFormData({
-        ...formData,
+  const handleChange = (section: keyof FormData, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: typeof prev[section] === 'object' ? {
+        ...prev[section] as object,
         [field]: value
-      });
-    }
-  };
-
-  const handleNestedChange = (section, nestedSection, field, value) => {
-    setFormData({
-      ...formData,
-      [section]: {
-        ...formData[section],
-        [nestedSection]: {
-          ...formData[section][nestedSection],
-          [field]: value
-        }
-      }
-    });
+      } : value
+    }));
   };
 
   const handlePrint = () => {
     const printContent = document.getElementById('printable-form');
+    if (!printContent) return;
+
     const windowUrl = 'about:blank';
     const uniqueName = new Date().getTime();
     const windowName = 'Print' + uniqueName;
     const printWindow = window.open(windowUrl, windowName, 'left=200,top=200,width=800,height=600');
+    if (!printWindow) return;
     
     printWindow.document.write('<html><head><title>Print</title>');
     printWindow.document.write('<style>' + formStyles + '</style>');
@@ -533,14 +545,14 @@ const PostalFormApp = () => {
 
 
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <div className="flex justify-center p-6 border-t">
           <button
             className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
             onClick={handlePrint}
           >
             Print Form
           </button>
-        </CardFooter>
+        </div>
       </Card>
       
       {/* Hidden printable form */}
