@@ -231,16 +231,26 @@ const formStyles = `
   }
 `;
 
+const SENDER_STORAGE_KEY = 'postal-form-sender-info';
+
 const PostalFormApp = () => {
-  const [formData, setFormData] = useState<FormData>({
-    trackingNumber: '',
-    sender: {
+  const [saveMessage, setSaveMessage] = useState<{type: 'success' | 'info'; text: string} | null>(null);
+
+  // Load saved sender info from localStorage on initial render
+  const loadSavedSenderInfo = () => {
+    const savedSender = localStorage.getItem(SENDER_STORAGE_KEY);
+    return savedSender ? JSON.parse(savedSender) : {
       name: '',
       addressLine1: '',
       addressLine2: '',
       postalCode: '',
       city: '',
-    },
+    };
+  };
+
+  const [formData, setFormData] = useState<FormData>({
+    trackingNumber: '',
+    sender: loadSavedSenderInfo(),
     recipient: {
       name: '',
       addressLine1: '',
@@ -316,7 +326,7 @@ const PostalFormApp = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
+                    Imię i nazwisko
                   </label>
                   <input
                     type="text"
@@ -328,7 +338,7 @@ const PostalFormApp = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address Line 1
+                    Ulica
                   </label>
                   <input
                     type="text"
@@ -340,7 +350,7 @@ const PostalFormApp = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address Line 2 (Optional)
+                    Ulica (cd.)
                   </label>
                   <input
                     type="text"
@@ -353,7 +363,7 @@ const PostalFormApp = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Postal Code
+                      Kod pocztowy
                     </label>
                     <input
                       type="text"
@@ -365,7 +375,7 @@ const PostalFormApp = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      City
+                      Miejscowość
                     </label>
                     <input
                       type="text"
@@ -401,6 +411,42 @@ const PostalFormApp = () => {
                     />
                   </div>
                 )}
+
+                <div className="flex space-x-4 mt-4">
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 text-sm"
+                    onClick={() => {
+                      localStorage.setItem(SENDER_STORAGE_KEY, JSON.stringify(formData.sender));
+                      setSaveMessage({ type: 'success', text: 'Dane nadawcy zostały zapisane' });
+                      setTimeout(() => setSaveMessage(null), 3000);
+                    }}
+                  >
+                    Zapisz dane nadawcy
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 text-sm"
+                    onClick={() => {
+                      localStorage.removeItem(SENDER_STORAGE_KEY);
+                      setFormData(prev => ({
+                        ...prev,
+                        sender: {
+                          name: '',
+                          addressLine1: '',
+                          addressLine2: '',
+                          postalCode: '',
+                          city: '',
+                        }
+                      }));
+                    }}
+                  >
+                    Wyczyść dane nadawcy
+                  </button>
+                </div>
+                {saveMessage && (
+                  <div className={`mt-2 p-2 rounded text-sm ${saveMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                    {saveMessage.text}
+                  </div>
+                )}
               </div>
             </div>
             
@@ -409,7 +455,7 @@ const PostalFormApp = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
+                    Imię i nazwisko
                   </label>
                   <input
                     type="text"
@@ -421,7 +467,7 @@ const PostalFormApp = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address Line 1
+                    Ulica
                   </label>
                   <input
                     type="text"
@@ -433,7 +479,7 @@ const PostalFormApp = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address Line 2 (Optional)
+                    Ulica (cd.)
                   </label>
                   <input
                     type="text"
@@ -446,7 +492,7 @@ const PostalFormApp = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Postal Code
+                      Kod pocztowy
                     </label>
                     <input
                       type="text"
@@ -458,7 +504,7 @@ const PostalFormApp = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      City
+                      Miejscowość
                     </label>
                     <input
                       type="text"
@@ -507,6 +553,7 @@ const PostalFormApp = () => {
                   </div>
                 )}
               </div>
+              
             </div>
           </div>
           
@@ -522,7 +569,7 @@ const PostalFormApp = () => {
                     onChange={(e) => handleChange('options', 'deliveryConfirmation', e.target.checked)}
                   />
                   <label className="text-sm font-medium text-gray-700">
-                    Delivery confirmation
+                    Potwierdzenie doręczenia
                   </label>
                 </div>
                 
@@ -534,7 +581,7 @@ const PostalFormApp = () => {
                     onChange={(e) => handleChange('options', 'priority', e.target.checked)}
                   />
                   <label className="text-sm font-medium text-gray-700">
-                    Priority
+                    Priorytet
                   </label>
                 </div>
               </div>
@@ -550,7 +597,7 @@ const PostalFormApp = () => {
             className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700"
             onClick={handlePrint}
           >
-            Print Form
+            Drukuj formularz
           </button>
         </div>
       </Card>
